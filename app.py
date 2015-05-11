@@ -6,6 +6,7 @@ import re
 app = Flask(__name__)
 app.secret_key = "not a good secret"
 app.database = "hw13.db"
+app.PROPAGATE_EXCEPTIONS = True
 
 
 def connect_db():
@@ -78,7 +79,6 @@ def add_student():
 
 
 @app.route('/quiz/add', methods=['GET', 'POST'])
-
 def add_quiz():
     months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 
@@ -88,7 +88,6 @@ def add_quiz():
         year = request.form['year']
         subject = request.form['subject']
         questions = request.form['questions']
-
 
         if len(subject.strip()) < 1:
             flash("Empty subject. Please try again.")
@@ -100,20 +99,21 @@ def add_quiz():
             flash("Empty fields in date. Please try again.")
 
         else:
-            if int(day) == 1:
+            if "1" in day and day != "11":
                 day = day + "st"
-            if int(day) ==2:
+            elif "2" in day:
                 day = day + "nd"
-            if int(day) == 3:
+            elif "3" in day:
                 day = day + "rd"
+            else:
+                day = day + "th"
 
-            date = "{}, {}, {}".format(month, day, year)
+            date = month +", " + day + ", "+ year
+
             g.db = connect_db()
-            print('f')
             g.db.execute('INSERT INTO quizzes (subject, questions, date_taken) values (?, ?, ?)', (subject, questions, date))
-            print('f2')
             g.db.commit()
-            return redirect(url_for('dashboard'))
+        return redirect(url_for('dashboard'))
 
     return render_template('add-quiz.html', months=months, title='Add Quiz')
 
